@@ -15,10 +15,12 @@ public class Product {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(columnDefinition = "nvarchar(255)")
     private String title;
+
     private Integer quantity;
 
-    @Column(name = "description")
+    @Column(name = "description", columnDefinition = "nvarchar(500)")
     private String desc;
 
     private Double price;

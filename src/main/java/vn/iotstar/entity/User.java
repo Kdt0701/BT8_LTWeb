@@ -18,7 +18,9 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(columnDefinition = "nvarchar(255)")
     private String fullname;
+
     private String email;
     private String password;
     private String phone;

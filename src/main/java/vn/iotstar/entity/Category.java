@@ -18,7 +18,9 @@ public class Category {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(columnDefinition = "nvarchar(255)")
     private String name;
+
     private String images;
 
     // Quan hệ 1 - N với Product
