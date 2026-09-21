@@ -20,6 +20,67 @@
         </div>
     </div>
 
+    <!-- Forms Thêm Mới (Mutations) -->
+    <div class="row my-4 g-3">
+        <!-- Form Thêm Category -->
+        <div class="col-md-4">
+            <div class="card h-100 border-primary">
+                <div class="card-header bg-primary text-white fw-bold">Thêm Danh Mục Mới</div>
+                <div class="card-body">
+                    <div class="mb-2">
+                        <label class="form-label">Tên danh mục</label>
+                        <input type="text" id="addCatName" class="form-control" placeholder="VD: Đồng hồ">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">Tên file hình ảnh</label>
+                        <input type="text" id="addCatImages" class="form-control" placeholder="VD: dongho.png">
+                    </div>
+                    <button id="btnAddCategory" class="btn btn-primary w-100">Thêm Category</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Thêm Product -->
+        <div class="col-md-8">
+            <div class="card h-100 border-success">
+                <div class="card-header bg-success text-white fw-bold">Thêm Sản Phẩm Mới</div>
+                <div class="card-body">
+                    <div class="row g-2 mb-2">
+                        <div class="col-md-6">
+                            <label class="form-label">Tên sản phẩm</label>
+                            <input type="text" id="addProdTitle" class="form-control" placeholder="VD: Apple Watch Series 9">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Giá (VND)</label>
+                            <input type="number" id="addProdPrice" class="form-control" placeholder="10000000">
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Số lượng</label>
+                            <input type="number" id="addProdQty" class="form-control" value="10">
+                        </div>
+                    </div>
+                    <div class="row g-2 mb-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Mô tả</label>
+                            <input type="text" id="addProdDesc" class="form-control" placeholder="VD: Đồng hồ thông minh">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Danh mục (Category)</label>
+                            <select id="addProdCatSelect" class="form-select">
+                                <option value="">-- Chọn Category --</option>
+                            </select>
+                        </div>
+                        <div class="col-md-2">
+                            <label class="form-label">User ID</label>
+                            <input type="number" id="addProdUserId" class="form-control" value="1">
+                        </div>
+                    </div>
+                    <button id="btnAddProduct" class="btn btn-success w-100">Thêm Sản Phẩm</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- Product Table -->
     <div class="card my-3">
         <div class="card-header fw-bold">Danh sách Sản Phẩm (Product)</div>
@@ -74,8 +135,10 @@
             });
         }
 
-        // 1. Hiển thị tất cả sản phẩm sắp xếp giá từ thấp đến cao
-        $('#btnLoadPriceAsc').click(function () {
+        // --- HÀM TẢI DỮ LIỆU ---
+
+        // Load tất cả Sản phẩm
+        function loadProductsAsc() {
             const query = `
                 query {
                     allProductsByPriceAsc {
@@ -89,7 +152,7 @@
                 }
             `;
             executeGraphQL(query).done(function (res) {
-                const products = res.data.allProductsByPriceAsc;
+                const products = res.data ? res.data.allProductsByPriceAsc : [];
                 let rows = '';
                 products.forEach(p => {
                     rows += `<tr>
@@ -103,9 +166,44 @@
                 });
                 $('#productTable tbody').html(rows || '<tr><td colspan="6" class="text-center">Không có dữ liệu</td></tr>');
             });
-        });
+        }
 
-        // 2. Lấy tất cả sản phẩm thuộc 1 Category ID
+        // Load tất cả Categories + Đồng bộ vào thẻ <select> thêm SP
+        function loadCategories() {
+            const query = `
+                query {
+                    allCategories {
+                        id
+                        name
+                        images
+                    }
+                }
+            `;
+            executeGraphQL(query).done(function (res) {
+                const categories = res.data ? res.data.allCategories : [];
+                let rows = '';
+                let options = '<option value="">-- Chọn Category --</option>';
+
+                categories.forEach(c => {
+                    rows += `<tr>
+                        <td>${c.id}</td>
+                        <td>${c.name}</td>
+                        <td>${c.images || ''}</td>
+                    </tr>`;
+                    options += `<option value="${c.id}">${c.name} (ID: ${c.id})</option>`;
+                });
+
+                $('#categoryTable tbody').html(rows || '<tr><td colspan="3" class="text-center">Không có dữ liệu</td></tr>');
+                $('#addProdCatSelect').html(options);
+            });
+        }
+
+        // --- EVENT HANDLERS (QUERIES) ---
+
+        $('#btnLoadPriceAsc').click(loadProductsAsc);
+        $('#btnLoadAllCategories').click(loadCategories);
+
+        // Lọc sản phẩm theo Category ID
         $('#btnFilterByCat').click(function () {
             const catId = $('#catIdInput').val();
             if (!catId) {
@@ -125,7 +223,7 @@
                 }
             `;
             executeGraphQL(query, { catId: catId }).done(function (res) {
-                const products = res.data.productsByCategory;
+                const products = res.data ? res.data.productsByCategory : [];
                 let rows = '';
                 products.forEach(p => {
                     rows += `<tr>
@@ -141,29 +239,93 @@
             });
         });
 
-        // 3. Tải danh sách Categories
-        $('#btnLoadAllCategories').click(function () {
-            const query = `
-                query {
-                    allCategories {
+        // --- EVENT HANDLERS (MUTATIONS) ---
+
+        // 1. Thêm Category mới
+        $('#btnAddCategory').click(function () {
+            const name = $('#addCatName').val().trim();
+            const images = $('#addCatImages').val().trim();
+
+            if (!name) {
+                alert('Vui lòng nhập tên danh mục!');
+                return;
+            }
+
+            const mutation = `
+                mutation CreateCategory($name: String!, $images: String) {
+                    createCategory(name: $name, images: $images) {
                         id
                         name
                         images
                     }
                 }
             `;
-            executeGraphQL(query).done(function (res) {
-                const categories = res.data.allCategories;
-                let rows = '';
-                categories.forEach(c => {
-                    rows += `<tr>
-                        <td>${c.id}</td>
-                        <td>${c.name}</td>
-                        <td>${c.images || ''}</td>
-                    </tr>`;
-                });
-                $('#categoryTable tbody').html(rows || '<tr><td colspan="3" class="text-center">Không có dữ liệu</td></tr>');
+
+            executeGraphQL(mutation, { name: name, images: images }).done(function (res) {
+                if (res.data && res.data.createCategory) {
+                    alert('Thêm Category thành công!');
+                    $('#addCatName').val('');
+                    $('#addCatImages').val('');
+                    loadCategories(); // Tải lại bảng Category & dropdown
+                } else {
+                    alert('Lỗi thêm Category: ' + JSON.stringify(res.errors));
+                }
             });
+        });
+
+        // 2. Thêm Product mới
+        $('#btnAddProduct').click(function () {
+            const title = $('#addProdTitle').val().trim();
+            const price = parseFloat($('#addProdPrice').val()) || 0;
+            const quantity = parseInt($('#addProdQty').val()) || 0;
+            const desc = $('#addProdDesc').val().trim();
+            const categoryId = $('#addProdCatSelect').val();
+            const userId = $('#addProdUserId').val();
+
+            if (!title) {
+                alert('Vui lòng nhập tên sản phẩm!');
+                return;
+            }
+            if (!categoryId) {
+                alert('Vui lòng chọn Category!');
+                return;
+            }
+
+            const mutation = `
+                mutation CreateProduct($title: String!, $quantity: Int, $price: Float, $desc: String, $categoryId: ID, $userId: ID) {
+                    createProduct(title: $title, quantity: $quantity, price: $price, desc: $desc, categoryId: $categoryId, userId: $userId) {
+                        id
+                        title
+                        price
+                    }
+                }
+            `;
+
+            const variables = {
+                title: title,
+                quantity: quantity,
+                price: price,
+                desc: desc,
+                categoryId: categoryId,
+                userId: userId
+            };
+
+            executeGraphQL(mutation, variables).done(function (res) {
+                if (res.data && res.data.createProduct) {
+                    alert('Thêm Sản phẩm thành công!');
+                    $('#addProdTitle').val('');
+                    $('#addProdPrice').val('');
+                    $('#addProdDesc').val('');
+                    loadProductsAsc(); // Tải lại bảng Sản phẩm
+                } else {
+                    alert('Lỗi thêm Sản phẩm: ' + JSON.stringify(res.errors));
+                }
+            });
+        });
+
+        // Tự động tải danh sách Categories khi vừa load trang để fill ô select
+        $(document).ready(function() {
+            loadCategories();
         });
     </script>
 </body>
