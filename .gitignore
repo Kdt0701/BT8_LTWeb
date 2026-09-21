@@ -1,0 +1,78 @@
+# ==========================================
+# Build Output & Dependencies (Maven)
+# ==========================================
+target/
+!.mvn/wrapper/maven-wrapper.jar
+!**/src/main/**/target/
+!**/src/test/**/target/
+*.class
+*.jar
+*.war
+*.ear
+*.rar
+
+# ==========================================
+# Quy tắc bảo vệ tệp .gitkeep (Dành cho bộ khung dự án)
+# ==========================================
+!.gitkeep
+
+# ==========================================
+# IDE & Editor Settings
+# ==========================================
+# IntelliJ IDEA
+.idea/
+*.iml
+*.iws
+*.ipr
+out/
+
+# VS Code
+.vscode/
+
+# STS / Eclipse / NetBeans
+.classpath
+.project
+.settings/
+.factorypath
+.apt_generated
+.springBeans
+.sts4-cache
+/nbproject/private/
+/build/
+
+# ==========================================
+# Local Environment & Secrets
+# ==========================================
+.env
+.env.*
+!.env.example
+application-local.properties
+application-local.yml
+application-local.yaml
+application-dev.properties
+application-dev.yml
+
+# ==========================================
+# Runtime Uploads & Media (Ảnh Category / Product)
+# ==========================================
+uploads/
+src/main/resources/static/uploads/*
+!src/main/resources/static/uploads/.gitkeep
+
+# ==========================================
+# Logs & Temporary Files
+# ==========================================
+*.log
+logs/
+*.sql.bak
+
+# ==========================================
+# OS & System Files
+# ==========================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
