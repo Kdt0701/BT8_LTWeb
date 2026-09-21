@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin - Quản lý Danh Mục</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <script src="https://code.jquery.com/jquery-3.6.4.min.js"></script>
+</head>
+<body class="container py-4">
+
+    <!-- Navbar Admin -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-danger mb-4 px-3 rounded">
+        <a class="navbar-brand fw-bold" href="#">⚙️ Admin Dashboard</a>
+        <div class="navbar-nav">
+            <a class="nav-link active" href="/admin/categories">Quản lý Danh Mục</a>
+            <a class="nav-link" href="/admin/products">Quản lý Sản Phẩm</a>
+        </div>
+        <div class="navbar-nav ms-auto">
+            <a class="nav-link text-white border border-white rounded px-2" href="/user/products">👁️ Xem trang User</a>
+        </div>
+    </nav>
+
+    <div class="row g-4">
+        <!-- Form thêm Category -->
+        <div class="col-md-4">
+            <div class="card shadow-sm border-primary">
+                <div class="card-header bg-primary text-white fw-bold">Thêm Danh Mục Mới</div>
+                <div class="card-body">
+                    <div class="mb-3">
+                        <label class="form-label">Tên danh mục</label>
+                        <input type="text" id="catName" class="form-control" placeholder="VD: Laptop">
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label">File hình ảnh</label>
+                        <input type="text" id="catImages" class="form-control" placeholder="VD: laptop.png">
+                    </div>
+                    <button id="btnAddCategory" class="btn btn-primary w-100">Lưu Danh Mục</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bảng Danh sách Category -->
+        <div class="col-md-8">
+            <div class="card shadow-sm">
+                <div class="card-header bg-dark text-white fw-bold">Danh Sách Danh Mục</div>
+                <div class="card-body p-0">
+                    <table class="table table-striped mb-0" id="categoryTable">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Tên danh mục</th>
+                                <th>Hình ảnh</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr><td colspan="3" class="text-center py-3">Đang tải...</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GRAPHQL_URL = '/graphql';
+
+        function executeGraphQL(query, variables = {}) {
+            return $.ajax({
+                url: GRAPHQL_URL,
+                type: 'POST',
+                contentType: 'application/json',
+                data: JSON.stringify({ query, variables })
+            });
+        }
+
+        function loadCategories() {
+            const query = `query { allCategories { id name images } }`;
+            executeGraphQL(query).done(res => {
+                const categories = res.data ? res.data.allCategories : [];
+                let rows = '';
+                categories.forEach(c => {
+                    rows += `<tr>
+                        <td>${c.id}</td>
+                        <td class="fw-bold">${c.name}</td>
+                        <td>${c.images || 'N/A'}</td>
+                    </tr>`;
+                });
+                $('#categoryTable tbody').html(rows || '<tr><td colspan="3" class="text-center">Chưa có danh mục</td></tr>');
+            });
+        }
+
+        $('#btnAddCategory').click(function () {
+            const name = $('#catName').val().trim();
+            const images = $('#catImages').val().trim();
+
+            if (!name) {
+                alert('Vui lòng nhập tên danh mục!');
+                return;
+            }
+
+            const mutation = `
+                mutation CreateCategory($name: String!, $images: String) {
+                    createCategory(name: $name, images: $images) { id name }
+                }
+            `;
+
+            executeGraphQL(mutation, { name, images }).done(res => {
+                if (res.data && res.data.createCategory) {
+                    alert('Thêm danh mục thành công!');
+                    $('#catName').val('');
+                    $('#catImages').val('');
+                    loadCategories();
+                } else {
+                    alert('Lỗi: ' + JSON.stringify(res.errors));
+                }
+            });
+        });
+
+        $(document).ready(loadCategories);
+    </script>
+</body>
+</html>
