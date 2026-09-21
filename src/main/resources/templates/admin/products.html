@@ -60,10 +60,11 @@
     <div class="card shadow-sm">
         <div class="card-header bg-dark text-white fw-bold">Danh Sách Sản Phẩm Trong Hệ Thống</div>
         <div class="card-body p-0">
-            <table class="table table-striped mb-0" id="productTable">
+            <table class="table table-striped align-middle mb-0" id="productTable">
                 <thead>
                     <tr>
                         <th>ID</th>
+                        <th style="width: 70px;">Hình ảnh</th>
                         <th>Tên sản phẩm</th>
                         <th>Số lượng</th>
                         <th>Giá (VND)</th>
@@ -72,7 +73,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    <tr><td colspan="6" class="text-center py-3">Đang tải...</td></tr>
+                    <tr><td colspan="7" class="text-center py-3">Đang tải...</td></tr>
                 </tbody>
             </table>
         </div>
@@ -90,6 +91,29 @@
             });
         }
 
+        // Hàm lấy ảnh sản phẩm thực tế theo tên hoặc danh mục
+        function getProductImageUrl(p) {
+            const title = (p.title || '').toLowerCase();
+            const catName = (p.category ? p.category.name : '').toLowerCase();
+
+            if (title.includes('iphone') || title.includes('samsung') || title.includes('xiaomi') || catName.includes('điện thoại')) {
+                return `https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=150&auto=format&fit=crop&q=80`;
+            }
+            if (title.includes('macbook') || title.includes('laptop') || title.includes('dell') || catName.includes('laptop')) {
+                return `https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=150&auto=format&fit=crop&q=80`;
+            }
+            if (title.includes('ipad') || title.includes('tab') || catName.includes('máy tính bảng')) {
+                return `https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=150&auto=format&fit=crop&q=80`;
+            }
+            if (title.includes('watch') || title.includes('garmin') || catName.includes('đồng hồ')) {
+                return `https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&auto=format&fit=crop&q=80`;
+            }
+            if (title.includes('airpods') || title.includes('loa') || title.includes('tai nghe') || catName.includes('âm thanh')) {
+                return `https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=150&auto=format&fit=crop&q=80`;
+            }
+            return `https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=150&auto=format&fit=crop&q=80`;
+        }
+
         function loadProducts() {
             const query = `
                 query {
@@ -102,8 +126,17 @@
                 const products = res.data ? res.data.allProductsByPriceAsc : [];
                 let rows = '';
                 products.forEach(p => {
+                    const imgUrl = getProductImageUrl(p);
+
                     rows += `<tr>
                         <td>${p.id}</td>
+                        <td>
+                            <img src="${imgUrl}" 
+                                 alt="${p.title}" 
+                                 class="rounded border shadow-sm" 
+                                 width="45" height="45" 
+                                 style="object-fit: cover;">
+                        </td>
                         <td class="fw-bold">${p.title}</td>
                         <td>${p.quantity}</td>
                         <td class="text-danger fw-bold">${p.price.toLocaleString('vi-VN')} đ</td>
@@ -111,7 +144,7 @@
                         <td><span class="badge bg-secondary">${p.category ? p.category.name : 'N/A'}</span></td>
                     </tr>`;
                 });
-                $('#productTable tbody').html(rows || '<tr><td colspan="6" class="text-center">Chưa có sản phẩm</td></tr>');
+                $('#productTable tbody').html(rows || '<tr><td colspan="7" class="text-center">Chưa có sản phẩm</td></tr>');
             });
         }
 
