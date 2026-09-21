@@ -20,8 +20,11 @@
 
     <!-- Thanh lọc & sắp xếp -->
     <div class="row g-3 mb-4 align-items-center">
-        <div class="col-md-3">
-            <button id="btnLoadPriceAsc" class="btn btn-outline-success w-100">Sắp xếp: Giá Thấp ➔ Cao</button>
+        <div class="col-md-4">
+            <!-- Nút bật/tắt sắp xếp Thấp <-> Cao -->
+            <button id="btnSortPrice" class="btn btn-outline-success w-100 fw-bold">
+                Sắp xếp: Giá Thấp ➔ Cao ⬆️
+            </button>
         </div>
         <div class="col-md-5">
             <div class="input-group">
@@ -57,6 +60,8 @@
 
     <script>
         const GRAPHQL_URL = '/graphql';
+        let currentProducts = []; // Lưu danh sách sản phẩm hiện tại
+        let isAscending = true;   // Mặc định: Thấp -> Cao
 
         function executeGraphQL(query, variables = {}) {
             return $.ajax({
@@ -91,9 +96,16 @@
         }
 
         function renderProducts(products) {
+            currentProducts = products || [];
+
+            // Ép buộc sắp xếp chính xác theo chiều mong muốn bằng JavaScript
+            currentProducts.sort((a, b) => {
+                return isAscending ? (a.price - b.price) : (b.price - a.price);
+            });
+
             let rows = '';
-            if (products && products.length > 0) {
-                products.forEach(p => {
+            if (currentProducts.length > 0) {
+                currentProducts.forEach(p => {
                     const imgUrl = getProductImageUrl(p);
 
                     rows += `<tr>
@@ -126,7 +138,10 @@
                     }
                 }
             `;
-            executeGraphQL(query).done(res => renderProducts(res.data ? res.data.allProductsByPriceAsc : []));
+            executeGraphQL(query).done(res => {
+                const list = res.data ? res.data.allProductsByPriceAsc : [];
+                renderProducts(list);
+            });
         }
 
         function loadCategoriesDropdown() {
@@ -141,7 +156,20 @@
             });
         }
 
-        $('#btnLoadPriceAsc').click(loadProducts);
+        // Đổi chiều sắp xếp khi bấm nút
+        $('#btnSortPrice').click(function () {
+            isAscending = !isAscending;
+            if (isAscending) {
+                $(this).text('Sắp xếp: Giá Thấp ➔ Cao ⬆️')
+                       .removeClass('btn-outline-danger')
+                       .addClass('btn-outline-success');
+            } else {
+                $(this).text('Sắp xếp: Giá Cao ➔ Thấp ⬇️')
+                       .removeClass('btn-outline-success')
+                       .addClass('btn-outline-danger');
+            }
+            renderProducts(currentProducts);
+        });
 
         $('#btnFilterCat').click(function () {
             const catId = $('#selectCategoryFilter').val();
@@ -156,7 +184,10 @@
                     }
                 }
             `;
-            executeGraphQL(query, { catId }).done(res => renderProducts(res.data ? res.data.productsByCategory : []));
+            executeGraphQL(query, { catId }).done(res => {
+                const list = res.data ? res.data.productsByCategory : [];
+                renderProducts(list);
+            });
         });
 
         $(document).ready(function () {
