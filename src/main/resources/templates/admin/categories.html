@@ -21,33 +21,34 @@
     </nav>
 
     <div class="row g-4">
-        <!-- Form thêm Category -->
-        <div class="col-md-4">
+        <!-- Form thêm Danh Mục -->
+        <div class="col-md-5">
             <div class="card shadow-sm border-primary">
                 <div class="card-header bg-primary text-white fw-bold">Thêm Danh Mục Mới</div>
                 <div class="card-body">
                     <div class="mb-3">
                         <label class="form-label">Tên danh mục</label>
-                        <input type="text" id="catName" class="form-control" placeholder="VD: Laptop">
+                        <input type="text" id="catName" class="form-control" placeholder="VD: Bàn phím cơ">
                     </div>
                     <div class="mb-3">
-                        <label class="form-label">File hình ảnh</label>
-                        <input type="text" id="catImages" class="form-control" placeholder="VD: laptop.png">
+                        <label class="form-label">File hình ảnh / Link URL ảnh</label>
+                        <input type="text" id="catImages" class="form-control" placeholder="VD: keyboard.png hoặc https://...">
+                        <small class="text-muted fs-7">Bạn có thể dán link URL ảnh hoặc nhập tên file từ khóa (phone, laptop, audio...)</small>
                     </div>
-                    <button id="btnAddCategory" class="btn btn-primary w-100">Lưu Danh Mục</button>
+                    <button id="btnAddCategory" class="btn btn-primary w-100 fw-bold">Lưu Danh Mục</button>
                 </div>
             </div>
         </div>
 
-        <!-- Bảng Danh sách Category -->
-        <div class="col-md-8">
+        <!-- Bảng danh sách Danh Mục -->
+        <div class="col-md-7">
             <div class="card shadow-sm">
                 <div class="card-header bg-dark text-white fw-bold">Danh Sách Danh Mục</div>
                 <div class="card-body p-0">
-                    <table class="table table-striped mb-0" id="categoryTable">
+                    <table class="table table-striped align-middle mb-0" id="categoryTable">
                         <thead>
                             <tr>
-                                <th>ID</th>
+                                <th style="width: 60px;">ID</th>
                                 <th>Tên danh mục</th>
                                 <th>Hình ảnh</th>
                             </tr>
@@ -73,19 +74,69 @@
             });
         }
 
+        // Hàm xử lý URL hình ảnh thông minh
+        function getCategoryImageUrl(cat) {
+            const rawImg = (cat.images || '').trim();
+            const name = (cat.name || '').toLowerCase();
+            const img = rawImg.toLowerCase();
+
+            // 1. Ưu tiên: Nếu người dùng dán link URL ảnh trực tiếp (http:// hoặc https://)
+            if (rawImg.startsWith('http://') || rawImg.startsWith('https://')) {
+                return rawImg;
+            }
+
+            // 2. Tự động ánh xạ theo từ khóa trong tên file hoặc tên danh mục
+            if (name.includes('điện thoại') || img.includes('phone')) {
+                return 'https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=150&auto=format&fit=crop&q=80';
+            }
+            if (name.includes('laptop') || img.includes('laptop')) {
+                return 'https://images.unsplash.com/photo-1517336714731-489689fd1ca8?w=150&auto=format&fit=crop&q=80';
+            }
+            if (name.includes('máy tính bảng') || img.includes('tablet')) {
+                return 'https://images.unsplash.com/photo-1544244015-0df4b3ffc6b0?w=150&auto=format&fit=crop&q=80';
+            }
+            if (name.includes('đồng hồ') || img.includes('smartwatch') || img.includes('watch')) {
+                return 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?w=150&auto=format&fit=crop&q=80';
+            }
+            if (name.includes('âm thanh') || img.includes('audio') || img.includes('loa') || img.includes('headphone')) {
+                return 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?w=150&auto=format&fit=crop&q=80';
+            }
+            if (name.includes('phụ kiện') || img.includes('accessory')) {
+                return 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=150&auto=format&fit=crop&q=80';
+            }
+            return 'https://images.unsplash.com/photo-1526738549149-8e07eca6c147?w=150&auto=format&fit=crop&q=80';
+        }
+
         function loadCategories() {
-            const query = `query { allCategories { id name images } }`;
+            const query = `
+                query {
+                    allCategories {
+                        id name images
+                    }
+                }
+            `;
             executeGraphQL(query).done(res => {
                 const categories = res.data ? res.data.allCategories : [];
                 let rows = '';
                 categories.forEach(c => {
+                    const imgUrl = getCategoryImageUrl(c);
+
                     rows += `<tr>
                         <td>${c.id}</td>
                         <td class="fw-bold">${c.name}</td>
-                        <td>${c.images || 'N/A'}</td>
+                        <td>
+                            <div class="d-flex align-items-center gap-2">
+                                <img src="${imgUrl}" 
+                                     alt="${c.name}" 
+                                     class="rounded border shadow-sm" 
+                                     width="45" height="45" 
+                                     style="object-fit: cover;">
+                                <small class="text-muted">(${c.images || 'N/A'})</small>
+                            </div>
+                        </td>
                     </tr>`;
                 });
-                $('#categoryTable tbody').html(rows || '<tr><td colspan="3" class="text-center">Chưa có danh mục</td></tr>');
+                $('#categoryTable tbody').html(rows || '<tr><td colspan="3" class="text-center py-3">Chưa có danh mục nào</td></tr>');
             });
         }
 
@@ -93,14 +144,13 @@
             const name = $('#catName').val().trim();
             const images = $('#catImages').val().trim();
 
-            if (!name) {
-                alert('Vui lòng nhập tên danh mục!');
-                return;
-            }
+            if (!name) { alert('Vui lòng nhập tên danh mục!'); return; }
 
             const mutation = `
                 mutation CreateCategory($name: String!, $images: String) {
-                    createCategory(name: $name, images: $images) { id name }
+                    createCategory(name: $name, images: $images) {
+                        id name images
+                    }
                 }
             `;
 
@@ -116,7 +166,9 @@
             });
         });
 
-        $(document).ready(loadCategories);
+        $(document).ready(function () {
+            loadCategories();
+        });
     </script>
 </body>
 </html>

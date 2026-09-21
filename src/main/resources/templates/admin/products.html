@@ -46,8 +46,8 @@
             </div>
             <div class="row g-3">
                 <div class="col-md-10">
-                    <label class="form-label">Mô tả</label>
-                    <input type="text" id="prodDesc" class="form-control" placeholder="VD: Màn hình Retina, RAM 8GB">
+                    <label class="form-label">Mô tả (có thể dán URL ảnh trực tiếp)</label>
+                    <input type="text" id="prodDesc" class="form-control" placeholder="VD: Màn hình Retina, RAM 8GB hoặc https://...">
                 </div>
                 <div class="col-md-2 d-flex align-items-end">
                     <button id="btnAddProduct" class="btn btn-success w-100 fw-bold">Lưu Sản Phẩm</button>
@@ -58,7 +58,10 @@
 
     <!-- Bảng sản phẩm -->
     <div class="card shadow-sm">
-        <div class="card-header bg-dark text-white fw-bold">Danh Sách Sản Phẩm Trong Hệ Thống</div>
+        <div class="card-header bg-dark text-white fw-bold d-flex justify-content-between align-items-center">
+            <span>Danh Sách Sản Phẩm Trong Hệ Thống</span>
+            <span class="badge bg-secondary" id="totalProductsCount">0 sản phẩm</span>
+        </div>
         <div class="card-body p-0">
             <table class="table table-striped align-middle mb-0" id="productTable">
                 <thead>
@@ -91,11 +94,18 @@
             });
         }
 
-        // Hàm lấy ảnh sản phẩm thực tế theo tên hoặc danh mục
+        // Hàm xử lý ảnh sản phẩm thông minh
         function getProductImageUrl(p) {
             const title = (p.title || '').toLowerCase();
             const catName = (p.category ? p.category.name : '').toLowerCase();
+            const desc = (p.desc || '').trim();
 
+            // 1. Ưu tiên: Nếu nhập trực tiếp URL hình ảnh ở trường Mô tả
+            if (desc.startsWith('http://') || desc.startsWith('https://')) {
+                return desc;
+            }
+
+            // 2. Ánh xạ ảnh sản phẩm thực tế theo từ khóa tên hoặc danh mục
             if (title.includes('iphone') || title.includes('samsung') || title.includes('xiaomi') || catName.includes('điện thoại')) {
                 return `https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?w=150&auto=format&fit=crop&q=80`;
             }
@@ -125,8 +135,10 @@
             executeGraphQL(query).done(res => {
                 let products = res.data ? res.data.allProductsByPriceAsc : [];
                 
-                // Ép buộc sắp xếp Tăng dần (Thấp -> Cao) theo giá bằng Javascript
+                // Ép buộc sắp xếp Tăng dần (Thấp -> Cao)
                 products.sort((a, b) => (a.price || 0) - (b.price || 0));
+
+                $('#totalProductsCount').text(`${products.length} sản phẩm`);
 
                 let rows = '';
                 products.forEach(p => {
@@ -148,7 +160,7 @@
                         <td><span class="badge bg-secondary">${p.category ? p.category.name : 'N/A'}</span></td>
                     </tr>`;
                 });
-                $('#productTable tbody').html(rows || '<tr><td colspan="7" class="text-center">Chưa có sản phẩm</td></tr>');
+                $('#productTable tbody').html(rows || '<tr><td colspan="7" class="text-center py-3">Chưa có sản phẩm</td></tr>');
             });
         }
 
