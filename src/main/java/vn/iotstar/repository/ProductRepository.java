@@ -1,17 +1,14 @@
 package vn.iotstar.repository;
-
-import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.stereotype.Repository;
 import vn.iotstar.entity.Product;
-
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.EntityGraph;
 import java.util.List;
-
-@Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
-
-    // Lấy tất cả Product sắp xếp giá từ thấp đến cao (yêu cầu đề bài)
+    @Override @EntityGraph(attributePaths = {"user", "category"}) List<Product> findAll();
+    @Override @EntityGraph(attributePaths = {"user", "category"}) java.util.Optional<Product> findById(Long id);
+    @EntityGraph(attributePaths = {"user", "category"})
     List<Product> findAllByOrderByPriceAsc();
-
-    // Lấy tất cả Product theo Category ID (yêu cầu đề bài)
-    List<Product> findByCategoryId(Long categoryId);
+    @EntityGraph(attributePaths = {"user", "category"})
+    List<Product> findByCategoryIdOrderByPriceAsc(Long categoryId);
+    boolean existsByCategoryId(Long categoryId);
 }

@@ -1,143 +1,78 @@
-```markdown
-# BT8_LTWeb - Spring Boot GraphQL Product Category API AJAX
+# GraphQL Product & Category
 
-## 1. Mục tiêu bài tập (Objectives)
-Dự án **BT8_LTWeb** được xây dựng nhằm tạo bộ khung và ứng dụng hoàn chỉnh Java Web trên nền tảng **Spring Boot 3**, triển khai hệ thống API với **GraphQL** và giao diện tương tác qua **AJAX**. Dự án đáp ứng đầy đủ các mục tiêu chính theo đề bài Bài tập 08:
-* Thiết kế và ánh xạ mô hình CSDL gồm các bảng `Category`, `User`, `Product` với các mối quan hệ:
-  * Category ↔ User: Mối quan hệ Nhiều - Nhiều (Many-to-Many).
-  * Category ↔ Product: Mối quan hệ Một - Nhiều (One-to-Many).
-* Hiện thực hệ thống **GraphQL API** (Query & Mutation) cho xử lý CRUD và truy vấn dữ liệu.
-* Tích hợp công cụ thử nghiệm GraphQL (**GraphiQL UI**) và **Swagger 3 (Springdoc OpenAPI)**.
-* Xây dựng giao diện Frontend (.html) gọi GraphQL API thông qua **jQuery / AJAX** để hiển thị dữ liệu động không tải lại trang.
+Bài tập Lập trình Web: xây dựng CRUD Category/Product bằng Spring for GraphQL, rồi render bằng Thymeleaf + jQuery AJAX.
 
-## 2. Mô hình Dữ liệu (Domain Model)
-* **Category**: `id`, `name`, `images`
-* **User**: `id`, `fullname`, `email`, `password`, `phone`
-* **Product**: `id`, `title`, `quantity`, `desc`, `price`, `userid`
-* **Mối quan hệ**:
-  * Category ↔ User: Many-to-Many
-  * Category ↔ Product: One-to-Many
+## Yêu cầu và công nghệ
 
-## 3. Công nghệ sử dụng (Tech Stack)
-* **Language**: Java 21
-* **Framework**: Spring Boot 3.x
-* **API Framework**: Spring GraphQL, Spring Web
-* **Database & ORM**: SQL Server, Spring Data JPA
-* **Validation & Utility**: Spring Boot Starter Validation, Lombok
-* **Documentation & Testing**: Springdoc OpenAPI (Swagger 3), GraphiQL UI
-* **Template Engine & UI**: HTML5, Bootstrap 5, jQuery, AJAX
-* **Build Tool**: Maven
+Yêu cầu gồm: danh sách Product theo giá tăng dần, Product theo Category, CRUD Product, CRUD Category và AJAX trên HTML. Ứng dụng dùng Java 21 (Maven hiện chạy JDK 24), Spring Boot 3.5.7, Spring GraphQL, Spring Web, Spring Data JPA, Jakarta Validation, Thymeleaf, Bootstrap, jQuery, Lombok, SQL Server JDBC và H2 chỉ cho test.
 
-## 4. Chức năng đã hoàn thành (Features)
-### GraphQL Query & Mutation API
-* **CRUD Category**: Lấy danh sách, Thêm mới, Cập nhật, Xóa Category.
-* **CRUD Product**: Lấy danh sách, Thêm mới, Cập nhật, Xóa Product.
-* **Truy vấn nâng cao Product**:
-  * Sắp xếp danh sách Product có giá từ thấp đến cao (`allProductsByPriceAsc`).
-  * Lấy danh sách Product thuộc về 01 Category cụ thể (`productsByCategory`).
+## Thiết kế dữ liệu
 
-### Frontend UI & Integration
-* **Trang User (`/user/products`)**: Bảng hiển thị danh sách sản phẩm, sắp xếp theo giá, lọc theo danh mục qua GraphQL AJAX. Tự động hiển thị hình ảnh thật chất lượng cao theo tên/loại thiết bị qua Unsplash CDN.
-* **Trang Admin (`/admin/products`)**: Form thêm sản phẩm mới trực tiếp qua Mutation GraphQL, bảng quản lý danh sách sản phẩm hệ thống kèm ảnh thumbnail tự động.
-
-## 5. Tiến độ thực hiện (Progress Checklist)
-* [x] **[Hoàn thành]** Khởi tạo cấu trúc dự án BT8_LTWeb (Maven, Spring Boot 3, Java 21)
-* [x] **[Hoàn thành]** Cấu hình `application.properties` kết nối CSDL SQL Server
-* [x] **[Hoàn thành]** Định nghĩa Entity JPA (`Category`, `Product`, `User`) kèm Annotation mối quan hệ
-* [x] **[Hoàn thành]** Xây dựng GraphQL Schema (`schema.graphqls`) định nghĩa Types, Queries & Mutations
-* [x] **[Hoàn thành]** Viết Spring Data JPA Repositories & Business Service Layer
-* [x] **[Hoàn thành]** Viết GraphQL Controllers (`@QueryMapping`, `@MutationMapping`, `@SchemaMapping`)
-* [x] **[Hoàn thành]** Cấu hình GraphiQL UI (`/graphiql`) & Swagger 3 (`/swagger-ui.html`)
-* [x] **[Hoàn thành]** Xây dựng giao diện User (`user/products.html`) gọi GraphQL API qua jQuery AJAX
-* [x] **[Hoàn thành]** Xây dựng giao diện Admin (`admin/products.html`) quản lý & thêm sản phẩm
-* [x] **[Hoàn thành]** Tích hợp hàm `getProductImageUrl()` ánh xạ ảnh sản phẩm thực tế từ Unsplash CDN
-
-## 6. Cấu trúc thư mục dự án (Project Structure)
-
-```text
-BT8_LTWeb/
-├── database/
-│   └── schema.sql
-├── src/
-│   ├── main/
-│   │   ├── java/
-│   │   │   └── vn/
-│   │   │       └── iotstar/
-│   │   │           ├── config/
-│   │   │           │   └── GraphQLConfig.java
-│   │   │           ├── controller/
-│   │   │           │   ├── CategoryGraphQLController.java
-│   │   │           │   ├── ProductGraphQLController.java
-│   │   │           │   └── ViewController.java
-│   │   │           ├── dto/
-│   │   │           ├── entity/
-│   │   │           │   ├── Category.java
-│   │   │           │   ├── Product.java
-│   │   │           │   └── User.java
-│   │   │           ├── repository/
-│   │   │           │   ├── CategoryRepository.java
-│   │   │           │   ├── ProductRepository.java
-│   │   │           │   └── UserRepository.java
-│   │   │           └── service/
-│   │   │               ├── CategoryService.java
-│   │   │               └── ProductService.java
-│   │   └── resources/
-│   │       ├── graphql/
-│   │       │   └── schema.graphqls
-│   │       ├── static/
-│   │       │   ├── css/
-│   │       │   └── js/
-│   │       ├── templates/
-│   │       │   ├── admin/
-│   │       │   │   └── products.html
-│   │       │   └── user/
-│   │       │       └── products.html
-│   │       └── application.properties
-│   └── test/
-├── .gitignore
-├── pom.xml
-└── README.md
-
+```mermaid
+erDiagram
+  CATEGORY ||--o{ PRODUCT : contains
+  USER ||--o{ PRODUCT : owns
+  CATEGORY }o--o{ USER : category_users
 ```
 
-## 7. Hướng dẫn Cài đặt & Chạy ứng dụng
+`products.category_id` được bổ sung vì quan hệ Category-Product một-nhiều bắt buộc cần khóa ngoại, dù đề gốc chưa liệt kê cột này. Cột SQL dùng `description` thay cho `desc` vì `DESC` là từ khóa SQL; GraphQL vẫn expose field `desc`.
 
-### Bước 1: Clone Repository
+## Cấu hình database
 
-```bash
-git clone [https://github.com/Kdt0701/BT8_LTWeb.git](https://github.com/Kdt0701/BT8_LTWeb.git)
-cd BT8_LTWeb
+Tạo database (một lần, bằng tài khoản có quyền):
 
+```sql
+IF DB_ID(N'graphql_db') IS NULL CREATE DATABASE graphql_db;
 ```
 
-### Bước 2: Cấu hình CSDL
+Thiết lập biến môi trường trong phiên PowerShell, không ghi password vào source:
 
-Cập nhật thông tin kết nối SQL Server trong file `src/main/resources/application.properties`:
-
-```properties
-spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=BT8_LTWeb;encrypt=true;trustServerCertificate=true
-spring.datasource.username=sa
-spring.datasource.password=sa
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-
+```powershell
+$env:DB_USERNAME = "sa"
+$env:DB_PASSWORD = "<your-password>"
 ```
 
-### Bước 3: Build & Chạy ứng dụng
+Datasource mặc định là `localhost:1433/graphql_db`; có thể thay bằng `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USERNAME`, `DB_PASSWORD`.
 
-```bash
-mvn clean install
-mvn spring-boot:run
+## Chạy và kiểm thử
 
+```powershell
+mvn clean test
+mvn clean package
+& "$env:JAVA_HOME\bin\java.exe" -jar ".\target\graphql-product-category-0.0.1-SNAPSHOT.jar"
 ```
 
-### Bước 4: Truy cập giao diện & Công cụ
+- GraphQL: `http://localhost:8083/graphql` (POST)
+- GraphiQL: `http://localhost:8083/graphiql`
+- AJAX Category: `http://localhost:8083/ajax/categories`
+- AJAX Product: `http://localhost:8083/ajax/products`
 
-* **Trang User**: `http://localhost:8080/user/products`
-* **Trang Admin**: `http://localhost:8080/admin/products`
-* **GraphiQL UI**: `http://localhost:8080/graphiql`
-* **Swagger UI**: `http://localhost:8080/swagger-ui.html`
+GraphQL có thể phản hồi HTTP 200 đồng thời chứa `errors`; client phải kiểm tra `errors` thay vì chỉ dựa HTTP status. Lỗi nghiệp vụ trả extension code `NOT_FOUND`, `CONFLICT` hoặc `VALIDATION_ERROR` mà không lộ stack trace/SQL/password.
 
+### Query
+
+`products`, `productById`, `productsByPriceAsc`, `productsByCategory`, `categories`, `categoryById`, `users`, `userById`.
+
+```graphql
+query ProductsByCategory($categoryId: ID!) {
+  productsByCategory(categoryId: $categoryId) { id title price }
+}
 ```
 
+```json
+{"categoryId":"1"}
 ```
+
+### Mutation
+
+`createCategory`, `updateCategory`, `deleteCategory`, `createProduct`, `updateProduct`, `deleteProduct`, `createUser`, `assignUsersToCategory`.
+
+## Kế hoạch
+
+- [x] Mục 1: nghiên cứu PDF, scaffold, thiết kế entity/repository/schema.
+- [x] Mục 2: GraphQL service, resolver, validation, H2 GraphQlTester và SQL Server runtime.
+- [x] Mục 3: hai trang Thymeleaf responsive, Bootstrap và jQuery AJAX render từ GraphQL.
+
+Mục 2 dùng DTO input, service transaction, repository sorting ở database và `@EntityGraph` cho quan hệ Product-User-Category. Password User được BCrypt hash và schema không expose trường này.
+
+Mục 3 có navigation giữa Category/Product, loading state, thông báo thành công/lỗi, xác nhận xóa và escape nội dung trước khi đưa vào bảng. Bộ lọc Category gọi `productsByCategory`; nút giá tăng dần gọi `productsByPriceAsc`, không tự sort bằng JavaScript.

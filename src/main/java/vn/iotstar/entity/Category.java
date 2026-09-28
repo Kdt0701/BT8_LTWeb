@@ -1,35 +1,22 @@
 package vn.iotstar.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Entity
-@Table(name = "categories")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Entity @Table(name = "categories", uniqueConstraints = @UniqueConstraint(name = "uk_category_name", columnNames = "name"))
+@Getter @Setter @NoArgsConstructor
 public class Category {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(columnDefinition = "nvarchar(255)")
-    private String name;
-
-    private String images;
-
-    // Quan hệ 1 - N với Product
-    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL, orphanRemoval = true)
-    @Builder.Default
-    private List<Product> products = new ArrayList<>();
-
-    // Quan hệ N - N với User
-    @ManyToMany(mappedBy = "categories")
-    @Builder.Default
-    private List<User> users = new ArrayList<>();
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
+    @Column(nullable = false, length = 120) private String name;
+    @Column(length = 1000) private String images;
+    @ManyToMany @JoinTable(name = "category_users", joinColumns = @JoinColumn(name = "category_id"), inverseJoinColumns = @JoinColumn(name = "user_id"))
+    private Set<User> users = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "category") private Set<Product> products = new LinkedHashSet<>();
+    @Override public boolean equals(Object o) { return o instanceof Category c && id != null && id.equals(c.id); }
+    @Override public int hashCode() { return getClass().hashCode(); }
+    @Override public String toString() { return "Category{id=" + id + ", name='" + name + "'}"; }
 }

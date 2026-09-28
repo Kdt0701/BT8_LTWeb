@@ -1,41 +1,23 @@
 package vn.iotstar.entity;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
+import java.util.LinkedHashSet;
+import java.util.Set;
 
-import java.util.ArrayList;
-import java.util.List;
-
-@Entity
-@Table(name = "users")
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+@Entity @Table(name = "users", uniqueConstraints = @UniqueConstraint(name = "uk_user_email", columnNames = "email"))
+@Getter @Setter @NoArgsConstructor
 public class User {
-
-    @Id
-    @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-
-    @Column(columnDefinition = "nvarchar(255)")
-    private String fullname;
-
-    private String email;
-    private String password;
-    private String phone;
-
-    // Quan hệ N - N với Category
-    @ManyToMany
-    @JoinTable(
-        name = "user_categories",
-        joinColumns = @JoinColumn(name = "user_id"),
-        inverseJoinColumns = @JoinColumn(name = "category_id")
-    )
-    @Builder.Default
-    private List<Category> categories = new ArrayList<>();
-
-    @OneToMany(mappedBy = "user")
-    @Builder.Default
-    private List<Product> products = new ArrayList<>();
+    @Id @GeneratedValue(strategy = GenerationType.IDENTITY) private Long id;
+    @Column(nullable = false, length = 150) private String fullname;
+    @Column(nullable = false, length = 254) private String email;
+    @Column(nullable = false, length = 100) private String password;
+    @Column(length = 30) private String phone;
+    @ManyToMany(mappedBy = "users") private Set<Category> categories = new LinkedHashSet<>();
+    @OneToMany(mappedBy = "user") private Set<Product> products = new LinkedHashSet<>();
+    @Override public boolean equals(Object o) { return o instanceof User u && id != null && id.equals(u.id); }
+    @Override public int hashCode() { return getClass().hashCode(); }
+    @Override public String toString() { return "User{id=" + id + ", email='" + email + "'}"; }
 }
